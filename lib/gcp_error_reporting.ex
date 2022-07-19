@@ -6,6 +6,7 @@ defmodule GcpErrorReporting do
   alias GoogleApi.CloudErrorReporting.V1beta1.Connection
   alias GoogleApi.CloudErrorReporting.V1beta1.Api.Projects
   alias GoogleApi.CloudErrorReporting.V1beta1.Model.ReportedErrorEvent
+  alias GoogleApi.CloudErrorReporting.V1beta1.Model.ServiceContext
 
   def report_error do
     Projects.clouderrorreporting_projects_events_report(
@@ -18,7 +19,7 @@ defmodule GcpErrorReporting do
   defp error_body do
     %ReportedErrorEvent{
       message: message(),
-      # serviceContext: service_context()
+      serviceContext: service_context()
     }
   end
 
@@ -38,5 +39,12 @@ defmodule GcpErrorReporting do
 
   defp projects_id do
     System.fetch_env!("GCP_PROJECT")
+  end
+
+  defp service_context do
+    %ServiceContext{
+      service: "gcp-error-reporting",
+      version: "pat-dev"
+    }
   end
 end
