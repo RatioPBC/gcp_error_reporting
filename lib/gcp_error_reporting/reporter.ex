@@ -12,6 +12,21 @@ defmodule GcpErrorReporting.Reporter do
     |> with_context(reporter)
   end
 
+  def format_error(error, stacktrace) do
+    [format_header(error, stacktrace), format_stacktrace(stacktrace)]
+    |> Enum.join()
+  end
+
+  defp format_header(error, stacktrace) do
+    Exception.format_banner(:error, error, stacktrace)
+  end
+
+  defp format_stacktrace(stacktrace) do
+    Exception.format_stacktrace(stacktrace)
+    |> String.replace(~r/(^|\n)    /, "\n")
+    |> String.replace(~r/(.*)\:(\d+)\: (.*)\n/, "\\1:\\2:in `\\3'\n")
+  end
+
   defp with_service_context(event, %{service: nil, service_version: nil}), do: event
   defp with_service_context(event, %{service: service, service_version: version}), do: %{event | serviceContext: %ServiceContext{service: service, version: version}}
 
