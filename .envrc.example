@@ -1,1 +1,2 @@
-GCP_API_KEY="foobar"
+export GOOGLE_APPLICATION_CREDENTIALS="/path/to/service-account-key.json"
+export GCP_PROJECT="gcp-project-name"
