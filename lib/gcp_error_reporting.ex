@@ -5,8 +5,11 @@ defmodule GcpErrorReporting do
 
   alias GoogleApi.CloudErrorReporting.V1beta1.Connection
   alias GoogleApi.CloudErrorReporting.V1beta1.Api.Projects
+  alias GoogleApi.CloudErrorReporting.V1beta1.Model.ErrorContext
   alias GoogleApi.CloudErrorReporting.V1beta1.Model.ReportedErrorEvent
   alias GoogleApi.CloudErrorReporting.V1beta1.Model.ServiceContext
+  alias GoogleApi.CloudErrorReporting.V1beta1.Model.SourceLocation
+  alias GoogleApi.CloudErrorReporting.V1beta1.Model.SourceReference
 
   def report_error do
     Projects.clouderrorreporting_projects_events_report(
@@ -19,16 +22,17 @@ defmodule GcpErrorReporting do
   defp error_body do
     %ReportedErrorEvent{
       message: message(),
-      serviceContext: service_context()
+      serviceContext: service_context(),
+      context: context()
     }
   end
 
   defp message do
     """
     Pat's super duper cool error
-    prog.rb:2:in `a'
-    prog.rb:6:in `b'
-    prog.rb:10
+    path/to/prog.ex:2:in `My.Mod.a'
+    path/to/prog.ex:6:in `My.Mod.b'
+    path/to/prog.ex:10:in `My.Mod.c'
     """
   end
 
@@ -46,5 +50,29 @@ defmodule GcpErrorReporting do
       service: "gcp-error-reporting",
       version: "pat-dev"
     }
+  end
+
+  defp context do
+    %ErrorContext{
+      reportLocation: report_location(),
+      sourceReferences: source_references()
+    }
+  end
+
+  defp report_location do
+    %SourceLocation{
+      filePath: "foo.ex",
+      functionName: "My.Module.foo",
+      lineNumber: 123
+    }
+  end
+
+  defp source_references do
+    [
+      %SourceReference{
+        repository: "https://www.github.com/tba",
+        revisionId: "main"
+      }
+    ]
   end
 end
