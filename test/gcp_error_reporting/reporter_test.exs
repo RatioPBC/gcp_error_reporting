@@ -12,19 +12,20 @@ defmodule GcpErrorReporting.ReporterTest do
   describe "format_error" do
     test "a runtime error with message" do
       error = %RuntimeError{message: "oops"}
+
       stacktrace = [
         {Foo, :bar, 0, [file: 'foo/bar.ex', line: 123]},
         {Foo.Bar, :baz, 1, [file: 'foo/bar/baz.ex', line: 456]}
       ]
 
       assert Reporter.format_error(error, stacktrace) ==
-        """
-        RuntimeError: Foo.bar/0 (foo/bar.ex:123)
-        foo/bar.ex:123:in `Foo.bar/0'
-        foo/bar/baz.ex:456:in `Foo.Bar.baz/1'
-        --
-        ** (RuntimeError) oops
-        """
+               """
+               RuntimeError: Foo.bar/0 (foo/bar.ex:123)
+               foo/bar.ex:123:in `Foo.bar/0'
+               foo/bar/baz.ex:456:in `Foo.Bar.baz/1'
+               --
+               ** (RuntimeError) oops
+               """
     end
   end
 
@@ -41,85 +42,95 @@ defmodule GcpErrorReporting.ReporterTest do
 
     test "basic config", %{error: error, stacktrace: stacktrace} do
       reporter = %Reporter{}
-      message =
-        """
-        RuntimeError: Foo.bar/0 (foo/bar.ex:123)
-        foo/bar.ex:123:in `Foo.bar/0'
-        foo/bar/baz.ex:456:in `Foo.Bar.baz/1'
-        --
-        ** (RuntimeError) oops
-        """
+
+      message = """
+      RuntimeError: Foo.bar/0 (foo/bar.ex:123)
+      foo/bar.ex:123:in `Foo.bar/0'
+      foo/bar/baz.ex:456:in `Foo.Bar.baz/1'
+      --
+      ** (RuntimeError) oops
+      """
 
       assert Reporter.error_event(error, stacktrace, reporter) == %ReportedErrorEvent{
-        message: message,
-        context: %ErrorContext{
-          reportLocation: %SourceLocation{
-            filePath: "foo/bar.ex",
-            functionName: "Foo.bar/0",
-            lineNumber: 123
-          }
-        }
-      }
+               message: message,
+               context: %ErrorContext{
+                 reportLocation: %SourceLocation{
+                   filePath: "foo/bar.ex",
+                   functionName: "Foo.bar/0",
+                   lineNumber: 123
+                 }
+               }
+             }
     end
 
     test "with service" do
       reporter = %Reporter{service: "foo"}
 
       assert Reporter.error_event("foo error", reporter) == %ReportedErrorEvent{
-        message: "foo error",
-        serviceContext: %ServiceContext{service: "foo"}
-      }
+               message: "foo error",
+               serviceContext: %ServiceContext{service: "foo"}
+             }
     end
 
     test "with service_version" do
       reporter = %Reporter{service_version: "main"}
 
       assert Reporter.error_event("foo error", reporter) == %ReportedErrorEvent{
-        message: "foo error",
-        serviceContext: %ServiceContext{version: "main"}
-      }
+               message: "foo error",
+               serviceContext: %ServiceContext{version: "main"}
+             }
     end
 
     test "with sources" do
-      reporter = %Reporter{sources: [[repository: "https://www.github.com/tba", revision: "main"]]}
+      reporter = %Reporter{
+        sources: [[repository: "https://www.github.com/tba", revision: "main"]]
+      }
 
       assert Reporter.error_event("foo error", reporter) == %ReportedErrorEvent{
-        message: "foo error",
-        context: %ErrorContext{
-          sourceReferences: [
-            %SourceReference{repository: "https://www.github.com/tba", revisionId: "main"}
-          ]
-        }
-      }
+               message: "foo error",
+               context: %ErrorContext{
+                 sourceReferences: [
+                   %SourceReference{repository: "https://www.github.com/tba", revisionId: "main"}
+                 ]
+               }
+             }
     end
 
     test "complete config", %{error: error, stacktrace: stacktrace} do
-      reporter = %Reporter{service: "foo", service_version: "main", sources: [[repository: "https://www.github.com/tba", revision: "main"], [repository: "https://www.gitlab.com/mirror"], [revision: "foo"]]}
-      message =
-        """
-        RuntimeError: Foo.bar/0 (foo/bar.ex:123)
-        foo/bar.ex:123:in `Foo.bar/0'
-        foo/bar/baz.ex:456:in `Foo.Bar.baz/1'
-        --
-        ** (RuntimeError) oops
-        """
+      reporter = %Reporter{
+        service: "foo",
+        service_version: "main",
+        sources: [
+          [repository: "https://www.github.com/tba", revision: "main"],
+          [repository: "https://www.gitlab.com/mirror"],
+          [revision: "foo"]
+        ]
+      }
+
+      message = """
+      RuntimeError: Foo.bar/0 (foo/bar.ex:123)
+      foo/bar.ex:123:in `Foo.bar/0'
+      foo/bar/baz.ex:456:in `Foo.Bar.baz/1'
+      --
+      ** (RuntimeError) oops
+      """
 
       assert Reporter.error_event(error, stacktrace, reporter) == %ReportedErrorEvent{
-        message: message,
-        serviceContext: %ServiceContext{service: "foo", version: "main"},
-        context: %ErrorContext{
-          reportLocation: %SourceLocation{
-            filePath: "foo/bar.ex",
-            functionName: "Foo.bar/0",
-            lineNumber: 123
-          },
-          sourceReferences: [
-            %SourceReference{repository: "https://www.github.com/tba", revisionId: "main"},
-            %SourceReference{repository: "https://www.gitlab.com/mirror"},
-            %SourceReference{revisionId: "foo"},
-          ]
-          }
-        }
+               message: message,
+               serviceContext: %ServiceContext{service: "foo", version: "main"},
+               context: %ErrorContext{
+                 reportLocation: %SourceLocation{
+                   filePath: "foo/bar.ex",
+                   functionName: "Foo.bar/0",
+                   lineNumber: 123
+                 },
+                 sourceReferences: [
+                   %SourceReference{repository: "https://www.github.com/tba", revisionId: "main"},
+                   %SourceReference{repository: "https://www.gitlab.com/mirror"},
+                   %SourceReference{revisionId: "foo"}
+                 ]
+               }
+             }
     end
   end
 end

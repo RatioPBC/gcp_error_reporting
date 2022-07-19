@@ -47,11 +47,22 @@ defmodule GcpErrorReporting.Reporter do
   end
 
   defp with_service_context(event, %{service: nil, service_version: nil}), do: event
-  defp with_service_context(event, %{service: service, service_version: version}), do: %{event | serviceContext: %ServiceContext{service: service, version: version}}
+
+  defp with_service_context(event, %{service: service, service_version: version}),
+    do: %{event | serviceContext: %ServiceContext{service: service, version: version}}
 
   defp with_context(event, %{sources: nil}), do: event
+
   defp with_context(event, %{sources: sources}) do
-    references = Enum.map(sources, &%SourceReference{repository: Keyword.get(&1, :repository), revisionId: Keyword.get(&1, :revision)})
+    references =
+      Enum.map(
+        sources,
+        &%SourceReference{
+          repository: Keyword.get(&1, :repository),
+          revisionId: Keyword.get(&1, :revision)
+        }
+      )
+
     %{event | context: %ErrorContext{sourceReferences: references}}
   end
 
@@ -61,11 +72,14 @@ defmodule GcpErrorReporting.Reporter do
       functionName: Exception.format_mfa(m, f, a),
       lineNumber: line
     }
-    context = if event.context do
-      event.context
-    else
-      %ErrorContext{}
-    end
+
+    context =
+      if event.context do
+        event.context
+      else
+        %ErrorContext{}
+      end
+
     %{event | context: %{context | reportLocation: source_location}}
   end
 end
