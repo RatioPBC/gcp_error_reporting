@@ -18,11 +18,23 @@ defmodule GcpErrorReporting.Reporter do
   end
 
   def format_error(error, stacktrace) do
-    [format_header(error, stacktrace), format_stacktrace(stacktrace)]
+    [
+      format_header(error, stacktrace),
+      format_stacktrace(stacktrace),
+      "--\n",
+      format_banner(error, stacktrace),
+      "\n"
+    ]
     |> Enum.join()
   end
 
-  defp format_header(error, stacktrace) do
+  defp format_header(%error{}, [{m, f, a, [file: file, line: line]} | _rest]) do
+    error = Module.split(error) |> Enum.join(".")
+    mfa = Exception.format_mfa(m, f, a)
+    "#{error}: #{mfa} (#{file}:#{line})"
+  end
+
+  defp format_banner(error, stacktrace) do
     Exception.format_banner(:error, error, stacktrace)
   end
 

@@ -18,9 +18,11 @@ defmodule GcpErrorReporting.ReporterTest do
 
       assert Reporter.format_error(error, stacktrace) ==
         """
-        ** (RuntimeError) oops
+        RuntimeError: Foo.bar/0 (foo/bar.ex:123)
         foo/bar.ex:123:in `Foo.bar/0'
         foo/bar/baz.ex:456:in `Foo.Bar.baz/1'
+        --
+        ** (RuntimeError) oops
         """
     end
   end
@@ -40,9 +42,11 @@ defmodule GcpErrorReporting.ReporterTest do
       reporter = %Reporter{}
       message =
         """
-        ** (RuntimeError) oops
+        RuntimeError: Foo.bar/0 (foo/bar.ex:123)
         foo/bar.ex:123:in `Foo.bar/0'
         foo/bar/baz.ex:456:in `Foo.Bar.baz/1'
+        --
+        ** (RuntimeError) oops
         """
 
       assert Reporter.error_event(error, stacktrace, reporter) == %ReportedErrorEvent{
