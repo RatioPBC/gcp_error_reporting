@@ -56,7 +56,16 @@ defmodule GcpErrorReporting.Reporter do
   end
 
   defp with_source_location(event, [{m, f, a, [file: file, line: line]} | _rest]) do
-    mfa = Exception.format_mfa(m, f, a)
-    %{event | context: %ErrorContext{reportLocation: %SourceLocation{filePath: to_string(file), functionName: mfa, lineNumber: line}}}
+    source_location = %SourceLocation{
+      filePath: to_string(file),
+      functionName: Exception.format_mfa(m, f, a),
+      lineNumber: line
+    }
+    context = if event.context do
+      event.context
+    else
+      %ErrorContext{}
+    end
+    %{event | context: %{context | reportLocation: source_location}}
   end
 end
