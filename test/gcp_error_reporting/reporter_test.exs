@@ -26,11 +26,27 @@ defmodule GcpErrorReporting.ReporterTest do
   end
 
   describe "error_event" do
-    test "basic config" do
-      reporter = %Reporter{}
+    setup do
+      %{
+        error: %RuntimeError{message: "oops"},
+        stacktrace: [
+          {Foo, :bar, 0, [file: 'foo/bar.ex', line: 123]},
+          {Foo.Bar, :baz, 1, [file: 'foo/bar/baz.ex', line: 456]}
+        ]
+      }
+    end
 
-      assert Reporter.error_event("foo error", reporter) == %ReportedErrorEvent{
-        message: "foo error"
+    test "basic config", %{error: error, stacktrace: stacktrace} do
+      reporter = %Reporter{}
+      message =
+        """
+        ** (RuntimeError) oops
+        foo/bar.ex:123:in `Foo.bar/0'
+        foo/bar/baz.ex:456:in `Foo.Bar.baz/1'
+        """
+
+      assert Reporter.error_event(error, stacktrace, reporter) == %ReportedErrorEvent{
+        message: message
       }
     end
 

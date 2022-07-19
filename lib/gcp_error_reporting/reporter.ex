@@ -6,6 +6,11 @@ defmodule GcpErrorReporting.Reporter do
   alias GoogleApi.CloudErrorReporting.V1beta1.Model.ServiceContext
   alias GoogleApi.CloudErrorReporting.V1beta1.Model.SourceReference
 
+  def error_event(error, stacktrace, %__MODULE__{} = reporter) do
+    format_error(error, stacktrace)
+    |> error_event(reporter)
+  end
+
   def error_event(message, %__MODULE__{} = reporter) do
     %ReportedErrorEvent{message: message}
     |> with_service_context(reporter)
