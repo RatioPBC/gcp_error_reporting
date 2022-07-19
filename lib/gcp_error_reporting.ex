@@ -30,9 +30,18 @@ defmodule GcpErrorReporting do
   defp message do
     """
     Pat's super duper cool error
+
     path/to/prog.ex:2:in `My.Mod.a'
     path/to/prog.ex:6:in `My.Mod.b'
     path/to/prog.ex:10:in `My.Mod.c'
+    --
+    Pat's super duper cool error
+    Multi-line error message line 1
+    Multi-line error message line 2
+    Multi-line error message line 3
+    --
+    Some extra context
+    Cool that it gets sent
     """
   end
 
