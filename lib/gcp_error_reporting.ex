@@ -31,7 +31,7 @@ defmodule GcpErrorReporting do
   end
 
   defp connection do
-    {:ok, token} = Goth.Token.for_scope("https://www.googleapis.com/auth/cloud-platform")
+    token = Goth.fetch!(GcpErrorReporting.Goth)
     Connection.new(token.token)
   end
 
