@@ -6,6 +6,7 @@ defmodule GcpErrorReporting.ReporterTest do
   alias GoogleApi.CloudErrorReporting.V1beta1.Model.ErrorContext
   alias GoogleApi.CloudErrorReporting.V1beta1.Model.ReportedErrorEvent
   alias GoogleApi.CloudErrorReporting.V1beta1.Model.ServiceContext
+  alias GoogleApi.CloudErrorReporting.V1beta1.Model.SourceLocation
   alias GoogleApi.CloudErrorReporting.V1beta1.Model.SourceReference
 
   describe "format_error" do
@@ -50,7 +51,14 @@ defmodule GcpErrorReporting.ReporterTest do
         """
 
       assert Reporter.error_event(error, stacktrace, reporter) == %ReportedErrorEvent{
-        message: message
+        message: message,
+        context: %ErrorContext{
+          reportLocation: %SourceLocation{
+            filePath: "foo/bar.ex",
+            functionName: "Foo.bar/0",
+            lineNumber: 123
+          }
+        }
       }
     end
 
