@@ -24,6 +24,7 @@ defmodule GcpErrorReporting do
 
   defp message do
     """
+    Pat's super duper cool error
     prog.rb:2:in `a'
     prog.rb:6:in `b'
     prog.rb:10
