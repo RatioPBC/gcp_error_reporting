@@ -6,14 +6,9 @@ defmodule GcpErrorReporting.Reporter do
 
   def error_event(message, %__MODULE__{} = reporter) do
     %ReportedErrorEvent{message: message}
-    |> with_service(reporter.service)
-    |> with_service_version(reporter.service_version)
+    |> with_service_context(reporter)
   end
 
-  defp with_service(event, nil), do: event
-  defp with_service(event, service), do: %{event | serviceContext: %ServiceContext{service: service}}
-
-  defp with_service_version(event, nil), do: event
-  defp with_service_version(%{serviceContext: nil} = event, version), do: %{event | serviceContext: %ServiceContext{version: version}}
-  defp with_service_version(%{serviceContext: context} = event, version), do: %{event | serviceContext: %{context | version: version}}
+  defp with_service_context(event, %{service: nil, service_version: nil}), do: event
+  defp with_service_context(event, %{service: service, service_version: version}), do: %{event | serviceContext: %ServiceContext{service: service, version: version}}
 end
