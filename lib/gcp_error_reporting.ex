@@ -11,9 +11,9 @@ defmodule GcpErrorReporting do
   alias GoogleApi.CloudErrorReporting.V1beta1.Model.SourceLocation
   alias GoogleApi.CloudErrorReporting.V1beta1.Model.SourceReference
 
-  def report_error do
+  def report_error(goth) do
     Projects.clouderrorreporting_projects_events_report(
-      connection(),
+      connection(goth),
       projects_id(),
       body: error_body()
     )
@@ -45,8 +45,8 @@ defmodule GcpErrorReporting do
     """
   end
 
-  defp connection do
-    token = Goth.fetch!(GcpErrorReporting.Goth)
+  defp connection(goth) do
+    token = Goth.fetch!(goth)
     Connection.new(token.token)
   end
 
