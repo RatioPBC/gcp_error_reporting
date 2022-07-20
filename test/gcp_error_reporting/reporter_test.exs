@@ -24,7 +24,7 @@ defmodule GcpErrorReporting.ReporterTest do
       reporter = %Reporter{}
 
       message = """
-      RuntimeError: Foo.bar/0 (foo/bar.ex:123)
+      RuntimeError in Foo.bar/0 (foo/bar.ex:123)
       foo/bar.ex:123:in `Foo.bar/0'
       foo/bar/baz.ex:456:in `Foo.Bar.baz/1'
       --
@@ -55,7 +55,7 @@ defmodule GcpErrorReporting.ReporterTest do
       ]
 
       message = """
-      UndefinedFunctionError: Foo.bar/2 (foo/bar.ex:123)
+      UndefinedFunctionError in Foo.bar/2 (foo/bar.ex:123)
       foo/bar.ex:123:in `Foo.bar/2'
       foo/bar/baz.ex:456:in `Foo.Bar.baz/1'
       --
@@ -119,7 +119,7 @@ defmodule GcpErrorReporting.ReporterTest do
       }
 
       message = """
-      RuntimeError: Foo.bar/0 (foo/bar.ex:123)
+      RuntimeError in Foo.bar/0 (foo/bar.ex:123)
       foo/bar.ex:123:in `Foo.bar/0'
       foo/bar/baz.ex:456:in `Foo.Bar.baz/1'
       --

@@ -38,7 +38,7 @@ defmodule GcpErrorReporting.Reporter do
   defp format_header(%error{}, [{m, f, a, [file: file, line: line]} | _rest]) do
     error = Module.split(error) |> Enum.join(".")
     mfa = Exception.format_mfa(m, f, a)
-    "#{error}: #{mfa} (#{file}:#{line})"
+    "#{error} in #{mfa} (#{file}:#{line})"
   end
 
   defp format_banner(error, stacktrace) do
