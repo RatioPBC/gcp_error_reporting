@@ -8,16 +8,15 @@ defmodule GcpErrorReporting.Reporter do
   alias GoogleApi.CloudErrorReporting.V1beta1.Model.SourceReference
 
   def error_event(error, stacktrace, %__MODULE__{} = reporter) do
-    format_error(error, stacktrace)
-    |> error_event(reporter)
+    %ReportedErrorEvent{}
+    |> with_message(error, stacktrace)
     |> with_source_location(stacktrace)
+    |> with_service_context(reporter)
+    |> with_sources(reporter)
   end
 
-  def error_event(message, %__MODULE__{} = reporter) do
-    %ReportedErrorEvent{message: message}
-    |> with_service_context(reporter)
-    |> with_context(reporter)
-  end
+  defp with_message(event, error, stacktrace),
+    do: %{event | message: format_error(error, stacktrace)}
 
   defp format_error(%_{} = error, stacktrace) do
     [
@@ -56,9 +55,9 @@ defmodule GcpErrorReporting.Reporter do
   defp with_service_context(event, %{service: service, service_version: version}),
     do: %{event | serviceContext: %ServiceContext{service: service, version: version}}
 
-  defp with_context(event, %{sources: nil}), do: event
+  defp with_sources(event, %{sources: nil}), do: event
 
-  defp with_context(event, %{sources: sources}) do
+  defp with_sources(event, %{sources: sources}) do
     references =
       Enum.map(
         sources,
@@ -68,24 +67,20 @@ defmodule GcpErrorReporting.Reporter do
         }
       )
 
-    %{event | context: %ErrorContext{sourceReferences: references}}
+    %{event | context: %{event.context | sourceReferences: references}}
   end
 
   defp with_source_location(event, [{m, f, a, [file: file, line: line]} | _rest]) do
-    source_location = %SourceLocation{
-      filePath: to_string(file),
-      functionName: Exception.format_mfa(m, f, a),
-      lineNumber: line
+    %{
+      event
+      | context: %ErrorContext{
+          reportLocation: %SourceLocation{
+            filePath: to_string(file),
+            functionName: Exception.format_mfa(m, f, a),
+            lineNumber: line
+          }
+        }
     }
-
-    context =
-      if event.context do
-        event.context
-      else
-        %ErrorContext{}
-      end
-
-    %{event | context: %{context | reportLocation: source_location}}
   end
 
   defp with_source_location(event, [_first | rest]), do: with_source_location(event, rest)
