@@ -18,6 +18,41 @@ defmodule GcpErrorReporting.Reporter do
   defp with_message(event, error, stacktrace),
     do: %{event | message: format_error(error, stacktrace)}
 
+  defp with_source_location(event, [{m, f, a, [file: file, line: line]} | _rest]) do
+    %{
+      event
+      | context: %ErrorContext{
+          reportLocation: %SourceLocation{
+            filePath: to_string(file),
+            functionName: Exception.format_mfa(m, f, a),
+            lineNumber: line
+          }
+        }
+    }
+  end
+
+  defp with_source_location(event, [_first | rest]), do: with_source_location(event, rest)
+
+  defp with_service_context(event, %{service: nil, service_version: nil}), do: event
+
+  defp with_service_context(event, %{service: service, service_version: version}),
+    do: %{event | serviceContext: %ServiceContext{service: service, version: version}}
+
+  defp with_sources(event, %{sources: nil}), do: event
+
+  defp with_sources(event, %{sources: sources}) do
+    references =
+      Enum.map(
+        sources,
+        &%SourceReference{
+          repository: Keyword.get(&1, :repository),
+          revisionId: Keyword.get(&1, :revision)
+        }
+      )
+
+    %{event | context: %{event.context | sourceReferences: references}}
+  end
+
   defp format_error(%_{} = error, stacktrace) do
     [
       format_header(error, stacktrace),
@@ -40,48 +75,13 @@ defmodule GcpErrorReporting.Reporter do
     "#{error} in #{mfa} (#{file}:#{line})"
   end
 
-  defp format_banner(error, stacktrace) do
-    Exception.format_banner(:error, error, stacktrace)
-  end
-
   defp format_stacktrace(stacktrace) do
     Exception.format_stacktrace(stacktrace)
     |> String.replace(~r/(^|\n)    /, "\n")
     |> String.replace(~r/(.*)\:(\d+)\: (.*)\n/, "\\1:\\2:in `\\3'\n")
   end
 
-  defp with_service_context(event, %{service: nil, service_version: nil}), do: event
-
-  defp with_service_context(event, %{service: service, service_version: version}),
-    do: %{event | serviceContext: %ServiceContext{service: service, version: version}}
-
-  defp with_sources(event, %{sources: nil}), do: event
-
-  defp with_sources(event, %{sources: sources}) do
-    references =
-      Enum.map(
-        sources,
-        &%SourceReference{
-          repository: Keyword.get(&1, :repository),
-          revisionId: Keyword.get(&1, :revision)
-        }
-      )
-
-    %{event | context: %{event.context | sourceReferences: references}}
+  defp format_banner(error, stacktrace) do
+    Exception.format_banner(:error, error, stacktrace)
   end
-
-  defp with_source_location(event, [{m, f, a, [file: file, line: line]} | _rest]) do
-    %{
-      event
-      | context: %ErrorContext{
-          reportLocation: %SourceLocation{
-            filePath: to_string(file),
-            functionName: Exception.format_mfa(m, f, a),
-            lineNumber: line
-          }
-        }
-    }
-  end
-
-  defp with_source_location(event, [_first | rest]), do: with_source_location(event, rest)
 end
