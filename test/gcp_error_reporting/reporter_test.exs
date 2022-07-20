@@ -82,6 +82,37 @@ defmodule GcpErrorReporting.ReporterTest do
              }
     end
 
+    test "erlang error" do
+      reporter = %Reporter{}
+
+      error = :undef
+
+      stacktrace = [
+        {Foo, :bar, [123, 456], []},
+        {Foo, :bar, 2, [file: 'foo/bar.ex', line: 123]},
+        {Foo.Bar, :baz, 1, [file: 'foo/bar/baz.ex', line: 456]}
+      ]
+
+      message = """
+      UndefinedFunctionError: Foo.bar/2 (foo/bar.ex:123)
+      foo/bar.ex:123:in `Foo.bar/2'
+      foo/bar/baz.ex:456:in `Foo.Bar.baz/1'
+      --
+      ** (UndefinedFunctionError) function Foo.bar/2 is undefined (module Foo is not available)
+      """
+
+      assert Reporter.error_event(error, stacktrace, reporter) == %ReportedErrorEvent{
+               message: message,
+               context: %ErrorContext{
+                 reportLocation: %SourceLocation{
+                   filePath: "foo/bar.ex",
+                   functionName: "Foo.bar/2",
+                   lineNumber: 123
+                 }
+               }
+             }
+    end
+
     test "with service" do
       reporter = %Reporter{service: "foo"}
 

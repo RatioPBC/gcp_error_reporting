@@ -87,4 +87,6 @@ defmodule GcpErrorReporting.Reporter do
 
     %{event | context: %{context | reportLocation: source_location}}
   end
+
+  defp with_source_location(event, [_first | rest]), do: with_source_location(event, rest)
 end
