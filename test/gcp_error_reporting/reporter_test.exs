@@ -9,45 +9,6 @@ defmodule GcpErrorReporting.ReporterTest do
   alias GoogleApi.CloudErrorReporting.V1beta1.Model.SourceLocation
   alias GoogleApi.CloudErrorReporting.V1beta1.Model.SourceReference
 
-  describe "format_error" do
-    test "a runtime error with message" do
-      error = %RuntimeError{message: "oops"}
-
-      stacktrace = [
-        {Foo, :bar, 0, [file: 'foo/bar.ex', line: 123]},
-        {Foo.Bar, :baz, 1, [file: 'foo/bar/baz.ex', line: 456]}
-      ]
-
-      assert Reporter.format_error(error, stacktrace) ==
-               """
-               RuntimeError: Foo.bar/0 (foo/bar.ex:123)
-               foo/bar.ex:123:in `Foo.bar/0'
-               foo/bar/baz.ex:456:in `Foo.Bar.baz/1'
-               --
-               ** (RuntimeError) oops
-               """
-    end
-
-    test "erlang error" do
-      error = :undef
-
-      stacktrace = [
-        {Foo, :bar, [123, 456], []},
-        {Foo, :bar, 2, [file: 'foo/bar.ex', line: 123]},
-        {Foo.Bar, :baz, 1, [file: 'foo/bar/baz.ex', line: 456]}
-      ]
-
-      assert Reporter.format_error(error, stacktrace) ==
-               """
-               UndefinedFunctionError: Foo.bar/2 (foo/bar.ex:123)
-               foo/bar.ex:123:in `Foo.bar/2'
-               foo/bar/baz.ex:456:in `Foo.Bar.baz/1'
-               --
-               ** (UndefinedFunctionError) function Foo.bar/2 is undefined (module Foo is not available)
-               """
-    end
-  end
-
   describe "error_event" do
     setup do
       %{

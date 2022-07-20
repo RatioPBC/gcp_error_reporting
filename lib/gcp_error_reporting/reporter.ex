@@ -19,7 +19,7 @@ defmodule GcpErrorReporting.Reporter do
     |> with_context(reporter)
   end
 
-  def format_error(%_{} = error, stacktrace) do
+  defp format_error(%_{} = error, stacktrace) do
     [
       format_header(error, stacktrace),
       format_stacktrace(stacktrace),
@@ -30,7 +30,7 @@ defmodule GcpErrorReporting.Reporter do
     |> Enum.join()
   end
 
-  def format_error(error, [_first | elixir_stacktrace] = stacktrace) do
+  defp format_error(error, [_first | elixir_stacktrace] = stacktrace) do
     Exception.normalize(:error, error, stacktrace)
     |> format_error(elixir_stacktrace)
   end
