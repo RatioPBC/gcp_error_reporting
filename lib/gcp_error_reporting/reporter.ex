@@ -71,7 +71,10 @@ defmodule GcpErrorReporting.Reporter do
     |> format_error(elixir_stacktrace)
   end
 
-  defp format_header(%error{}, [{m, f, a, [file: file, line: line]} | _rest]) do
+  defp format_header(%error{}, [{m, f, a, error_info} | _rest]) do
+    file = Keyword.get(error_info, :file)
+    line = Keyword.get(error_info, :line)
+
     error = Module.split(error) |> Enum.join(".")
     mfa = Exception.format_mfa(m, f, a)
     "#{error} in #{mfa} (#{file}:#{line})"
