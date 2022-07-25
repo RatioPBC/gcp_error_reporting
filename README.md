@@ -36,7 +36,7 @@ version = System.fetch_env!("CI_COMMIT")
   project_id: "gcp_project_name",
   service: "app_name",
   service_version: version,
-  source: [
+  sources: [
     [repository: "https://www.github.com/org/project", revision: version]
   ]
 }
