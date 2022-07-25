@@ -21,8 +21,10 @@ defmodule GcpErrorReporting.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
+      {:dialyxir, "~> 1.2", only: :dev},
       {:google_api_cloud_error_reporting, "~> 0.19"},
-      {:goth, "~> 1.3"}
+      {:goth, "~> 1.3"},
+      {:mox, "~> 1.0", only: :test}
     ]
   end
 end

@@ -1,0 +1,2 @@
+elixir 1.13.4-otp-24 # https://cgit.freebsd.org/ports/tree/lang/elixir/Makefile
+erlang 24.3.4.2 # https://cgit.freebsd.org/ports/tree/lang/erlang/Makefile

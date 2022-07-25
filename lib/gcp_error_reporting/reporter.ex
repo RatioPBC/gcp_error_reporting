@@ -1,6 +1,8 @@
 defmodule GcpErrorReporting.Reporter do
   defstruct [:goth, :project_id, :service, :service_version, :sources]
 
+  @type t :: %__MODULE__{}
+
   alias GoogleApi.CloudErrorReporting.V1beta1.Model.ErrorContext
   alias GoogleApi.CloudErrorReporting.V1beta1.Model.ReportedErrorEvent
   alias GoogleApi.CloudErrorReporting.V1beta1.Model.ServiceContext

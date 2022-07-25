@@ -1,28 +1,17 @@
-if System.get_env("RUN_WITH_GCP") do
-  defmodule GcpErrorReportingTest do
-    use ExUnit.Case
-    doctest GcpErrorReporting
+defmodule GcpErrorReportingTest do
+  use ExUnit.Case, async: false
 
-    alias GcpErrorReporting.Reporter
+  describe "register_logger_backend" do
+    test "registers a logger backend that reports errors" do
+      GcpErrorReporting.register_logger_backend()
+      on_exit(fn -> Logger.remove_backend(GcpErrorReporting.LoggerBackend) end)
 
-    @goth GcpErrorReportingTest.Goth
-    @project_id System.fetch_env!("GCP_PROJECT")
+      all_backends =
+        Supervisor.which_children(Logger.BackendSupervisor)
+        |> Enum.map(fn {backend, _, _, _} -> backend end)
+        |> Enum.sort()
 
-    setup do
-      {:ok, _} = start_supervised({Goth, name: @goth})
-      :ok
-    end
-
-    test "report an error to GCP" do
-      error = %RuntimeError{message: "oops"}
-
-      stacktrace = [
-        {Foo, :bar, 0, [file: 'foo/bar.ex', line: 123]},
-        {Foo.Bar, :baz, 1, [file: 'foo/bar/baz.ex', line: 456]}
-      ]
-
-      reporter = %Reporter{goth: @goth, project_id: @project_id}
-      assert {:ok, _response} = GcpErrorReporting.report_error(error, stacktrace, reporter)
+      assert GcpErrorReporting.LoggerBackend in all_backends
     end
   end
 end
