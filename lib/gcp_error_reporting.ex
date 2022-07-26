@@ -11,6 +11,14 @@ defmodule GcpErrorReporting do
                 | {:ok, Tesla.Env.t()}
                 | {:ok, list()}
                 | {:error, any()}
+
+    @callback report_error(error :: Exception.t() | :atom, list(), GcpErrorReporting.Reporter.t(), meta :: term()) ::
+                {:ok, GoogleApi.CloudErrorReporting.V1beta1.Model.ReportErrorEventResponse.t()}
+                | {:ok, Tesla.Env.t()}
+                | {:ok, list()}
+                | {:error, any()}
+
+    @optional_callbacks report_error: 4
   end
 
   alias GcpErrorReporting.Reporter
@@ -21,11 +29,11 @@ defmodule GcpErrorReporting do
   @behaviour GcpErrorReporting.Reporting
 
   @impl GcpErrorReporting.Reporting
-  def report_error(error, stacktrace, %Reporter{goth: goth, project_id: project_id} = reporter) do
+  def report_error(error, stacktrace, %Reporter{goth: goth, project_id: project_id} = reporter, meta \\ nil) do
     Projects.clouderrorreporting_projects_events_report(
       connection(goth),
       project_id,
-      body: Reporter.error_event(error, stacktrace, reporter)
+      body: Reporter.error_event(error, stacktrace, reporter, meta)
     )
   end
 

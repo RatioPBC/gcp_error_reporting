@@ -9,16 +9,12 @@ defmodule GcpErrorReporting.Reporter do
   alias GoogleApi.CloudErrorReporting.V1beta1.Model.SourceLocation
   alias GoogleApi.CloudErrorReporting.V1beta1.Model.SourceReference
 
-  def error_event(error, stacktrace, %__MODULE__{} = reporter) do
-    %ReportedErrorEvent{}
-    |> with_message(error, stacktrace)
+  def error_event(error, stacktrace, %__MODULE__{} = reporter, meta \\ nil) do
+    %ReportedErrorEvent{message: format_error(error, stacktrace, meta)}
     |> with_source_location(stacktrace)
     |> with_service_context(reporter)
     |> with_sources(reporter)
   end
-
-  defp with_message(event, error, stacktrace),
-    do: %{event | message: format_error(error, stacktrace)}
 
   defp with_source_location(event, [{m, f, a, [file: file, line: line]} | _rest]) do
     %{
@@ -55,20 +51,21 @@ defmodule GcpErrorReporting.Reporter do
     %{event | context: %{event.context | sourceReferences: references}}
   end
 
-  defp format_error(%_{} = error, stacktrace) do
+  defp format_error(%_{} = error, stacktrace, meta) do
     [
       format_header(error, stacktrace),
       format_stacktrace(stacktrace),
       "--\n",
       format_banner(error, stacktrace),
-      "\n"
+      "\n",
+      format_meta(meta)
     ]
     |> Enum.join()
   end
 
-  defp format_error(error, [_first | elixir_stacktrace] = stacktrace) do
+  defp format_error(error, [_first | elixir_stacktrace] = stacktrace, meta) do
     Exception.normalize(:error, error, stacktrace)
-    |> format_error(elixir_stacktrace)
+    |> format_error(elixir_stacktrace, meta)
   end
 
   defp format_header(%error{}, [{m, f, a, error_info} | _rest]) do
@@ -89,4 +86,7 @@ defmodule GcpErrorReporting.Reporter do
   defp format_banner(error, stacktrace) do
     Exception.format_banner(:error, error, stacktrace)
   end
+
+  defp format_meta(nil), do: ""
+  defp format_meta(meta), do: inspect(meta) <> "\n"
 end

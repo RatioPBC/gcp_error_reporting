@@ -130,6 +130,29 @@ defmodule GcpErrorReporting.ReporterTest do
              }
     end
 
+    test "with meta", %{
+      error: error,
+      stacktrace: stacktrace,
+      source_location: source_location
+    } do
+      reporter = %Reporter{}
+
+      assert Reporter.error_event(error, stacktrace, reporter, %{a: "foo", b: "bar"}) ==
+               %ReportedErrorEvent{
+                 message: """
+                 RuntimeError in Foo.bar/0 (foo/bar.ex:123)
+                 foo/bar.ex:123:in `Foo.bar/0'
+                 foo/bar/baz.ex:456:in `Foo.Bar.baz/1'
+                 --
+                 ** (RuntimeError) oops
+                 %{a: "foo", b: "bar"}
+                 """,
+                 context: %ErrorContext{
+                   reportLocation: source_location
+                 }
+               }
+    end
+
     test "complete config", %{
       error: error,
       stacktrace: stacktrace,
